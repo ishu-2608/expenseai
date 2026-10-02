@@ -2,13 +2,17 @@ from datetime import date, datetime, timedelta
 from calendar import monthrange
 from typing import Optional
 import csv, io, os, re, secrets
-import bcrypt, jwt
+import bcrypt, jwt, resend
+from dotenv import load_dotenv
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 from sqlalchemy import create_engine, Column, Integer, String, Float, Date, DateTime, ForeignKey, Boolean, func, inspect, text, case
 from sqlalchemy.orm import declarative_base, sessionmaker, Session, relationship
+
+load_dotenv()
+resend.api_key = os.getenv("RESEND_API_KEY")
 
 DB=os.getenv('DATABASE_URL','sqlite:///./expenseai.db'); engine=create_engine(DB,connect_args={'check_same_thread':False} if DB.startswith('sqlite') else {})
 SessionLocal=sessionmaker(bind=engine,autocommit=False,autoflush=False); Base=declarative_base(); APP_ENV=os.getenv('APP_ENV','development').lower(); configured_secret=os.getenv('JWT_SECRET'); 
@@ -39,6 +43,22 @@ def db():
   yield s
  finally:s.close()
 def hash_password(p): return bcrypt.hashpw(p.encode(),bcrypt.gensalt()).decode()
+def send_welcome_email(email, name):
+    try:
+        resend.Emails.send({
+            "from": "onboarding@resend.dev",
+            "to": email,
+            "subject": "Welcome to ExpenseAI 🎉",
+            "html": f"""
+            <h2>Welcome to ExpenseAI, {name}!</h2>
+            <p>Your account has been created successfully.</p>
+            <p>You can now start tracking your expenses, analyzing your spending, and managing your financial goals.</p>
+            <br>
+            <p>Thanks for joining ExpenseAI!</p>
+            """
+        })
+    except Exception as e:
+        print(f"Welcome email failed: {e}")
 def verify_password(p,h): return bcrypt.checkpw(p.encode(),h.encode())
 def migrate_transaction_ownership():
  if not DB.startswith('sqlite'): return
@@ -91,7 +111,7 @@ class BudgetIn(BaseModel): amount:float=Field(gt=0); month:str; category_id:Opti
 class GoalIn(BaseModel): name:str=Field(min_length=1); target:float=Field(gt=0); saved:float=Field(ge=0,default=0); deadline:Optional[date]=None
 class Contrib(BaseModel): amount:float=Field(gt=0)
 class Ask(BaseModel): question:str=Field(min_length=2,max_length=500)
-app=FastAPI(title='ExpenseAI API',version='2.0.0'); app.add_middleware(CORSMiddleware,allow_origins=[origin.strip() for origin in os.getenv('CORS_ORIGINS','http://localhost:5173,http://127.0.0.1:5173').split(',') if origin.strip()],allow_methods=['*'],allow_headers=['*'])
+app=FastAPI(title='ExpenseAI API',version='2.0.0'); app.add_middleware(CORSMiddleware,allow_origins=[origin.strip()for origin in os.getenv('CORS_ORIGINS','http://localhost:5173,http://127.0.0.1:5173').split(',') if origin.strip()],allow_credentials=True,allow_methods=['*'],allow_headers=['*'])
 CATS=[('Food','#f59e0b','utensils'),('Transport','#3b82f6','car'),('Shopping','#8b5cf6','shopping-bag'),('Entertainment','#ec4899','music'),('Bills','#ef4444','receipt'),('Education','#06b6d4','book'),('Health','#10b981','heart'),('Travel','#14b8a6','plane'),('Other','#64748b','circle')]
 def seed_categories(s): s.add_all([Category(name=n,color=c,icon=i) for n,c,i in CATS]); s.commit()
 def seed_demo(s):
@@ -213,7 +233,9 @@ def register(x:RegisterIn,s:Session=Depends(db)):
  if not re.fullmatch(r'[^@\s]+@[^@\s]+\.[^@\s]+',email): raise HTTPException(422,'Please enter a valid email')
  if not x.name.strip(): raise HTTPException(422,'Name is required')
  if s.query(User).filter(func.lower(User.email)==email).first(): raise HTTPException(409,'Email already registered')
- u=User(email=email,name=x.name.strip(),password_hash=hash_password(x.password)); s.add(u); s.commit(); s.refresh(u); return {'access_token':token(u),'token_type':'bearer','user':{'id':u.id,'email':u.email,'name':u.name}}
+ u=User(email=email,name=x.name.strip(),password_hash=hash_password(x.password))
+ s.add(u); s.commit(); s.refresh(u)
+ send_welcome_email(u.email,u.name); return {'access_token':token(u),'token_type':'bearer','user':{'id':u.id,'email':u.email,'name':u.name}}
 @app.post('/api/auth/login')
 def login(x:LoginIn,s:Session=Depends(db)):
  u=s.query(User).filter(func.lower(User.email)==x.email.strip().lower()).first()
