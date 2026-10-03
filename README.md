@@ -1,76 +1,304 @@
-# ExpenseAI
+ExpenseAI — AI-Powered Personal Expense Management
 
-ExpenseAI is a polished personal finance assistant for understanding spending, not just recording it. It combines a FastAPI/SQLAlchemy API with a responsive React dashboard and deterministic financial intelligence.
+ExpenseAI is a full-stack personal finance management application designed to help users track, understand, and analyze their spending.
 
-## Features
-- Dashboard balance, income, expenses, savings, budget health and recent activity
-- Searchable transactions with categories, filters, CSV preview/import, and add form
-- Spending trend and category analytics (week/month/year)
-- Overall monthly budgets with progress tracking
-- Savings goals and contributions API
-- Deterministic insights and safe natural-language expense queries (no arbitrary SQL)
-- Secure JWT registration/login, bcrypt password hashing, per-user data isolation, and logout
-- Seeded demo data only when explicitly enabled, CORS, input validation, responsive dark/light UI
+It combines a FastAPI backend, PostgreSQL database, and React/Vite frontend with analytics and AI-assisted financial insights. The application provides secure authentication, expense management, budgeting, savings goals, interactive analytics, and natural-language financial queries.
 
-## Run locally
-```bash
+🚀 Live Demo
+
+Frontend: https://expenseai-inky.vercel.app
+
+Backend API: https://expenseai-production-54e4.up.railway.app
+
+API Documentation: https://expenseai-production-54e4.up.railway.app/docs
+
+⸻
+
+✨ Features
+
+🔐 Authentication & Security
+
+* User registration and login
+* JWT-based authentication
+* Bcrypt password hashing
+* Per-user data isolation
+* Protected API endpoints
+* CORS configuration for production and development environments
+
+💰 Expense Management
+
+* Add, edit, and delete expenses
+* Categorize transactions
+* Search and filter transactions
+* Income and expense tracking
+* CSV preview/import support
+* Recent transaction activity
+
+📊 Financial Analytics
+
+* Total balance
+* Income and expense summaries
+* Savings tracking
+* Spending trends
+* Category-wise spending analysis
+* Weekly, monthly, and yearly analytics
+* Budget health monitoring
+
+🎯 Budget & Savings Goals
+
+* Monthly budget tracking
+* Budget progress monitoring
+* Savings goals
+* Goal contributions
+* Financial progress visualization
+
+🤖 AI-Assisted Financial Intelligence
+
+* Natural-language expense queries
+* Financial insights based on user spending data
+* Deterministic financial analysis
+* Safe query processing without allowing arbitrary SQL execution
+
+🎨 User Experience
+
+* Responsive React interface
+* Desktop and mobile support
+* Dark/light theme
+* Interactive charts and dashboards
+* Mobile-friendly layout
+
+⸻
+
+🛠️ Tech Stack
+
+Frontend
+
+* React
+* Vite
+* JavaScript
+* CSS
+* Recharts
+
+Backend
+
+* Python
+* FastAPI
+* SQLAlchemy
+* JWT
+* Bcrypt
+* Pydantic
+
+Database
+
+* PostgreSQL
+* SQLite for local development
+
+Deployment
+
+* Frontend: Vercel
+* Backend: Railway
+* Database: Railway PostgreSQL
+* Version Control: Git & GitHub
+
+⸻
+
+🏗️ Architecture
+
+                    ┌──────────────────────┐
+                    │       User           │
+                    │ Desktop / Mobile     │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │   React + Vite       │
+                    │      Vercel          │
+                    └──────────┬───────────┘
+                               │ REST API
+                               ▼
+                    ┌──────────────────────┐
+                    │      FastAPI         │
+                    │      Railway         │
+                    └──────────┬───────────┘
+                               │
+                    ┌──────────▼───────────┐
+                    │     SQLAlchemy       │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │ PostgreSQL Database  │
+                    │      Railway         │
+                    └──────────────────────┘
+
+⸻
+
+📁 Project Structure
+
+expenseai/
+│
+├── backend/
+│   ├── app/
+│   │   └── main.py
+│   ├── requirements.txt
+│   └── ...
+│
+├── frontend/
+│   ├── src/
+│   │   ├── main.jsx
+│   │   └── ...
+│   ├── index.html
+│   ├── package.json
+│   └── ...
+│
+├── .gitignore
+└── README.md
+
+⸻
+
+⚙️ Run Locally
+
+1. Clone the repository
+
+git clone https://github.com/ishu-2608/expenseai.git
+cd expenseai
+
+2. Set up the backend
+
 cd backend
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
+
+Start the backend:
+
 uvicorn app.main:app --reload
-# in another terminal
+
+Backend will be available at:
+
+http://localhost:8000
+
+API documentation:
+
+http://localhost:8000/docs
+
+3. Set up the frontend
+
+Open another terminal:
+
 cd frontend
 npm install
 npm run dev
-```
-Open http://localhost:5173. API docs: http://localhost:8000/docs.
 
-## Environment
-Backend: `DATABASE_URL`, `CORS_ORIGINS` (include the exact frontend origin, such as both `http://localhost:5173` and `http://127.0.0.1:5173` during local development), `APP_ENV`, `JWT_SECRET`, `JWT_ALGORITHM`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `SEED_DEMO_DATA`, optional `LLM_API_KEY` (local deterministic service works without it). Frontend: `VITE_API_URL`.
+Frontend will be available at:
 
-For production, set `APP_ENV=production`, provide a stable long-random `JWT_SECRET`, set `DATABASE_URL` to the PostgreSQL connection URL, and set `CORS_ORIGINS` to the exact HTTPS frontend origin. The frontend production build requires `VITE_API_URL` and must point to the deployed API, such as `https://your-render-service.onrender.com/api`; it never falls back to localhost in production.
+http://localhost:5173
 
-### Render backend
+⸻
 
-Create a Render Web Service with root directory `backend`:
+🔑 Environment Variables
 
-```bash
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port $PORT
-```
+Backend
 
-Set these Render environment variables:
+Create a .env file inside backend/:
 
-```text
-APP_ENV=production
-DATABASE_URL=<Render PostgreSQL connection URL>
-CORS_ORIGINS=https://<your-vercel-domain>
-JWT_SECRET=<long-random-production-secret>
+DATABASE_URL=<database-url>
+CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+JWT_SECRET=<your-secret>
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=10080
+APP_ENV=development
 SEED_DEMO_DATA=false
-```
 
-### Vercel frontend
+Frontend
 
-Create a Vercel project with root directory `frontend`, build command `npm run build`, and output directory `dist`. Set:
+For local development:
 
-```text
-VITE_API_URL=https://<your-render-service>.onrender.com/api
-```
+VITE_API_URL=http://localhost:8000/api
 
-The backend includes the PostgreSQL driver and creates the current SQLAlchemy schema at startup. The existing SQLite path remains available for local development.
+For production:
 
-New accounts start with no financial data. Set `SEED_DEMO_DATA=true` only for local development; demo data is assigned to `demo@expenseai.local` and is never shared with newly registered users.
+VITE_API_URL=https://expenseai-production-54e4.up.railway.app/api
 
-## Architecture
-`backend/app/main.py` contains the API composition, SQLAlchemy models, validation schemas and service-style analytical functions. SQLite is used by default and can be replaced with PostgreSQL via `DATABASE_URL`. `frontend/src/main.jsx` provides reusable page/components and API integration; CSS is responsive and theme-aware.
+Never commit .env files or API secrets to GitHub.
 
-## Testing
-```bash
-cd backend && PYTHONPATH=. pytest -q
-cd frontend && npm run build
-```
+⸻
 
-## Future improvements
-Alembic migrations, OCR adapter for receipts, recurring transaction automation, and optional hosted LLM provider.
+☁️ Production Deployment
+
+Frontend — Vercel
+
+The React/Vite frontend is deployed on Vercel.
+
+Production API configuration:
+
+VITE_API_URL=https://expenseai-production-54e4.up.railway.app/api
+
+Backend — Railway
+
+The FastAPI backend is deployed on Railway.
+
+Production backend:
+
+https://expenseai-production-54e4.up.railway.app
+
+Database — PostgreSQL
+
+ExpenseAI uses PostgreSQL in production through Railway.
+
+The backend uses SQLAlchemy for database interaction and supports SQLite for local development.
+
+⸻
+
+🧪 Testing
+
+Backend tests:
+
+cd backend
+PYTHONPATH=. pytest -q
+
+Frontend production build:
+
+cd frontend
+npm run build
+
+⸻
+
+🔒 Security
+
+ExpenseAI implements several security measures:
+
+* JWT-based authentication
+* Bcrypt password hashing
+* Protected API endpoints
+* User-level data isolation
+* Environment-based secret management
+* CORS restrictions
+* Input validation
+* No arbitrary SQL execution through natural-language queries
+
+⸻
+
+🔮 Future Improvements
+
+Potential future improvements include:
+
+* Database migrations with Alembic
+* Receipt OCR
+* Recurring transaction automation
+* More advanced AI-powered financial recommendations
+* Additional financial visualizations
+* Optional hosted LLM integration
+* Exportable financial reports
+
+⸻
+
+👨‍💻 Author
+
+Ishu Yadav
+
+B.Tech Computer Science Engineering
+
+Interested in AI/ML, Data Science, Generative AI, and Full-Stack Development.
+
+GitHub: https://github.com/ishu-2608
